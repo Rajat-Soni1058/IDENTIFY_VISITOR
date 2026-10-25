@@ -9,7 +9,7 @@ const {createPvisitorToken}=require("../services/createPVisitorToken");
 
 
 
-// route to signup for new pvisitor------->
+// route to signup for new pvisitor // ------->
 router.route("/signup").post(async (req, res) => {
     console.log("signup ho gya ladle");
   try {
@@ -60,12 +60,17 @@ router.route("/signup").post(async (req, res) => {
     // Generate JWT
     const token = createPvisitorToken(newPVisitor);
 
-    return res.status(201).json({
-      message: "Visitor registered successfully",
-      token
-    });
+const visitorResponse = newPVisitor.toObject();
+delete visitorResponse.password;
+delete visitorResponse.suspiciousCount;
 
-  } catch (error) {
+return res.status(201).json({
+  message: "Signup successful",
+  token,
+  visitor: visitorResponse
+});
+  }
+   catch (error) {
     return res.status(400).json({
       message: error.message
     });
@@ -73,7 +78,7 @@ router.route("/signup").post(async (req, res) => {
 });
 
 
-// Route for signin--------------->
+// Route for signin //--------------->
 router.route("/signin").post(async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -88,11 +93,11 @@ router.route("/signin").post(async (req, res) => {
     // Find visitor by email
     const visitor = await Pvisitor.findOne({
       email: email.trim().toLowerCase()
-    }).select("+password");
+    }).select("-password -suspiciousCount");
 
     if (!visitor) {
       return res.status(401).json({
-        error: "Invalid email or password"
+        error: "Invalid email "
       });
     }
 
@@ -104,7 +109,7 @@ router.route("/signin").post(async (req, res) => {
 
     if (!isPasswordCorrect) {
       return res.status(401).json({
-        error: "Invalid password"
+        error: " Invalid password "
       });
     }
 
@@ -126,6 +131,78 @@ router.route("/signin").post(async (req, res) => {
   } catch (error) {
     return res.status(500).json({
       error: "Internal server error"
+    });
+  }
+});
+
+
+// Update permanent visitor information //----------->
+router.route("/updateinfo").put(checkValidPvisitor, async (req, res) => {
+  try {
+    const pvisitorId = req.pvisitor.id;
+
+    const {name,email,address,age,gender,phoneNumber,identityNumber,purpose,oldPassword,
+      newPassword} = req.body;
+
+    // Update only the fields provided by the frontend
+    const updateData = {};
+
+    if (name !== undefined) updateData.name = name;
+    if (email !== undefined) updateData.email = email;
+    if (address !== undefined) updateData.address = address;
+    if (age !== undefined) updateData.age = age;
+    if (gender !== undefined) updateData.gender = gender;
+    if (phoneNumber !== undefined) updateData.phoneNumber = phoneNumber;
+    if (identityNumber !== undefined) updateData.identityNumber = identityNumber;
+    if (purpose !== undefined) updateData.purpose = purpose;
+
+    if (Object.keys(updateData).length === 0) {
+      return res.status(400).json({
+        message: "No information provided for update"
+      });
+    }
+
+//code snippet will  handle password change --------->
+if((newPassword!=undefined)&&(oldPassword!=undefined)&&(newPassword!=oldPassword)){
+
+const visitor = await Pvisitor.findById(pvisitorId);
+if (!visitor) {
+return res.status(404).json({ message: "User not found"});
+}
+
+const isPasswordCorrect = await bcrypt.compare(oldPassword,visitor.password);
+if (!isPasswordCorrect) {
+        return res.status(401).json({
+          message: "Old password is incorrect. No information was updated."
+        });
+}
+updateData.password = await bcrypt.hash(newPassword, 10);
+
+}
+// update the visitor profile ----->
+const updatedVisitor = await Pvisitor.findByIdAndUpdate(
+  pvisitorId,
+  { $set: updateData },
+  {
+    returnDocument: "after",
+    runValidators: true
+  }
+).select("-password -suspiciousCount");
+
+if(!updatedVisitor) {
+      return res.status(404).json({
+        message: "User not found"
+      });
+}
+
+    return res.status(200).json({
+      message: "Visitor information updated successfully",
+      visitor: updatedVisitor
+    });
+
+  } catch (error) {
+    return res.status(400).json({
+      message: error.message
     });
   }
 });
