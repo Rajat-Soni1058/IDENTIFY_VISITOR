@@ -93,7 +93,7 @@ router.route("/signin").post(async (req, res) => {
     // Find visitor by email
     const visitor = await Pvisitor.findOne({
       email: email.trim().toLowerCase()
-    }).select("-password -suspiciousCount");
+    });
 
     if (!visitor) {
       return res.status(401).json({
@@ -122,10 +122,15 @@ router.route("/signin").post(async (req, res) => {
 
     // Generate JWT
     const token = createPvisitorToken(visitor);
+    const visitorData = visitor.toObject();
+
+    delete visitorData.password;
+    delete visitorData.suspiciousCount;
 
     return res.status(200).json({
       message: "Signin successful",
-      token,visitor
+      token,
+      visitor:visitorData
     });
 
   } catch (error) {
@@ -206,5 +211,57 @@ if(!updatedVisitor) {
     });
   }
 });
+
+
+// Route to delete the account----------->
+
+router.route("/delete").delete(checkValidPvisitor, async (req, res) => {
+  try {
+    const pvisitorId = req.pvisitor.id;
+    const { password } = req.body||{};
+
+    if (!password) {
+      return res.status(400).json({
+        message: "Password is required to delete your account"
+      });
+    }
+    // Find the visitor account ---------->
+    const visitor = await Pvisitor.findById(pvisitorId);
+
+    if (!visitor) {
+      return res.status(404).json({
+        message: "Visitor account not found"
+      });
+    }
+
+    //Verify the password
+    const isPasswordCorrect = await bcrypt.compare(
+      password,
+      visitor.password
+    );
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        message: "Incorrect password"
+      });
+    }
+
+    // Delete the account
+    await Pvisitor.findByIdAndDelete(pvisitorId);
+
+    // Send success response
+    return res.status(200).json({
+      message: "Visitor account deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Account deletion error:", error);
+
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
+});
+
 
 module.exports = router;
