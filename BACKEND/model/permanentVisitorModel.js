@@ -20,6 +20,7 @@ const permanentVisitorSchema = new mongoose.Schema(
     },
     address: {
       type: String,
+      required:true,
       trim: true
     },
 
@@ -36,11 +37,13 @@ const permanentVisitorSchema = new mongoose.Schema(
 
     phoneNumber: {
       type: String,
+      required:true,
       trim: true
     },
     identityNumber: {
       type: String,
       trim: true,
+      required:true,
       select: false
     },
 
