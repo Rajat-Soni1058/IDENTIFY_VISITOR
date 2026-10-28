@@ -12,8 +12,12 @@ const permanentVisitorSchema = new mongoose.Schema(
   required: true,
   trim: true,
   lowercase: true,
-     match: [/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Please enter a valid email address"]
-   },
+  unique: true,
+  match: [
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    "Please enter a valid email address"
+  ]
+},
    password:{
         type:String,
         required:true,
