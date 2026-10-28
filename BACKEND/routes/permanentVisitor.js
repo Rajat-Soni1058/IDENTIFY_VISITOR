@@ -141,19 +141,18 @@ router.route("/signin").post(async (req, res) => {
 });
 
 
-// Update permanent visitor information //----------->
+// Update permanent visitor information
 router.route("/updateinfo").put(checkValidPvisitor, async (req, res) => {
   try {
     const pvisitorId = req.pvisitor.id;
+    const { name, email,address,age,gender,phoneNumber,identityNumber,purpose,oldPassword,newPassword
+    } = req.body || {};
 
-    const {name,email,address,age,gender,phoneNumber,identityNumber,purpose,oldPassword,
-      newPassword} = req.body;
-
-    // Update only the fields provided by the frontend
+    //Prepare profile fields for update------>
     const updateData = {};
 
     if (name !== undefined) updateData.name = name;
-    if (email !== undefined) updateData.email = email;
+    if (email !== undefined) updateData.email = email.trim().toLowerCase();
     if (address !== undefined) updateData.address = address;
     if (age !== undefined) updateData.age = age;
     if (gender !== undefined) updateData.gender = gender;
@@ -161,53 +160,100 @@ router.route("/updateinfo").put(checkValidPvisitor, async (req, res) => {
     if (identityNumber !== undefined) updateData.identityNumber = identityNumber;
     if (purpose !== undefined) updateData.purpose = purpose;
 
+    //Check whether a password change was requested---------->
+    const changingPassword = oldPassword !== undefined || newPassword !== undefined;
+    if (changingPassword) {
+    // Both passwords are required
+      if (!oldPassword || !newPassword) {
+        return res.status(400).json({
+          message: "Both old password and new password are required"
+        });
+      }
+      // New password must differ from the old password
+      if (oldPassword === newPassword) {
+        return res.status(400).json({
+          message: "New password must be different from the old password"
+        });
+      }
+
+      // Find the visitor
+      const visitor = await Pvisitor.findById(pvisitorId);
+      if (!visitor) {
+        return res.status(404).json({
+          message: "User not found"
+        });
+      }
+
+      // Verify the old password
+      const isPasswordCorrect = await bcrypt.compare(
+        oldPassword,
+        visitor.password
+      );
+
+      if (!isPasswordCorrect) {
+        return res.status(401).json({
+          message: "Old password is incorrect. No information was updated."
+        });
+      }
+      // Hash the new password
+      updateData.password = await bcrypt.hash(newPassword, 10);
+    }
+
+    //Check whether there is anything to update
     if (Object.keys(updateData).length === 0) {
       return res.status(400).json({
         message: "No information provided for update"
       });
     }
 
-//code snippet will  handle password change --------->
-if((newPassword!=undefined)&&(oldPassword!=undefined)&&(newPassword!=oldPassword)){
+    // Update the visitor information-------->
+    const updatedVisitor = await Pvisitor.findByIdAndUpdate(
+      pvisitorId,
+      { $set: updateData },
+      {
+        returnDocument: "after",
+        runValidators: true
+      }
+    ).select("-password -suspiciousCount");
 
-const visitor = await Pvisitor.findById(pvisitorId);
-if (!visitor) {
-return res.status(404).json({ message: "User not found"});
-}
-
-const isPasswordCorrect = await bcrypt.compare(oldPassword,visitor.password);
-if (!isPasswordCorrect) {
-        return res.status(401).json({
-          message: "Old password is incorrect. No information was updated."
-        });
-}
-updateData.password = await bcrypt.hash(newPassword, 10);
-
-}
-// update the visitor profile ----->
-const updatedVisitor = await Pvisitor.findByIdAndUpdate(
-  pvisitorId,
-  { $set: updateData },
-  {
-    returnDocument: "after",
-    runValidators: true
-  }
-).select("-password -suspiciousCount");
-
-if(!updatedVisitor) {
+    // 5. Check whether the visitor exists
+    if (!updatedVisitor) {
       return res.status(404).json({
         message: "User not found"
       });
-}
+    }
 
+    // 6. Return the updated information
     return res.status(200).json({
       message: "Visitor information updated successfully",
       visitor: updatedVisitor
     });
 
   } catch (error) {
-    return res.status(400).json({
-      message: error.message
+    console.error("Update visitor error:", {
+    userId: req.pvisitor?.id,
+    errorMessage: error.message,
+    errorCode: error.code,
+    errorName: error.name,
+    timestamp: new Date().toISOString()
+  });
+
+    // Handle duplicate email errors
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message: "Email address is already registered"
+      });
+    }
+
+    // Handle Mongoose validation errors
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({
+        message: error.message
+      });
+    }
+
+    return res.status(500).json({
+      message: "Internal server error ,Please try after sometime"
     });
   }
 });
