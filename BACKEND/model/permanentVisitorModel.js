@@ -44,7 +44,6 @@ const permanentVisitorSchema = new mongoose.Schema(
       type: String,
       trim: true,
       required:true,
-      select: false
     },
 
     purpose: {
