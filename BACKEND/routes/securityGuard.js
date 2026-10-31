@@ -301,6 +301,168 @@ router.route("/updateInfo").put(checkValidGuard, async (req, res) => {
   }
 });
 
-// router
+
+// Update guard organization information ----------->
+router.route("/updateOrganizationInfo").put(checkValidGuard, async (req, res) => {
+  let session;
+
+  try {
+    const guardId = req.gaurdID.id;
+
+    const{ organizationCode,employeeId,currentPassword} = req.body || {};
+
+    // Validate that at least one field is provided
+    if (organizationCode === undefined && employeeId === undefined) {
+      return res.status(400).json({
+        message: "No information provided for update"
+      });
+    }
+
+    // Validate current password
+    if ( typeof currentPassword !== "string" ||!currentPassword ) {
+      return res.status(400).json({
+        message: "Current password is required"
+      });
+    }
+
+    // Validate organization code before database operations
+    let normalizedCode;
+
+    if (organizationCode !== undefined) {
+      if (typeof organizationCode !== "string" ||!organizationCode.trim()
+      ){
+        return res.status(400).json({
+          message: "Please provide a valid organization code"
+        });
+      }
+
+      normalizedCode = organizationCode.trim().toUpperCase();
+    }
+
+    // Find guard and retrieve password
+    const guard = await SecGaurd.findById(guardId).select("+password");
+
+    if (!guard) {
+      return res.status(404).json({
+        message: "Security guard not found"
+      });
+    }
+
+    // Verify current password
+    const isPasswordCorrect = await bcrypt.compare(currentPassword,guard.password);
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        message: "Current password is incorrect"
+      });
+    }
+
+    //  Prepare profile updates
+    const updateData = {};
+
+    if (employeeId !== undefined) {updateData.employeeId = employeeId;}
+
+    // Start MongoDB transaction
+    session = await mongoose.startSession();
+
+    let updatedGuard;
+
+    await session.withTransaction(async () => {
+
+      // Check organization and create membership only when requested
+    if (normalizedCode !== undefined) {
+        // Find organization using its human-readable code
+      const organization = await Organization.findOne({organizationCode: normalizedCode}).session(session);
+
+        if (!organization) {
+          const error = new Error(
+            "Organization not found. Please check the organization code."
+          );
+          error.status = 404;
+          throw error;
+        }
+
+        // Create a pending membership request.
+        // The unique compound index prevents duplicate relationships.
+        await OrganizationGuard.create(
+          [{
+            guardId: guard._id,
+            organizationId: organization._id,
+            status: "pending"
+          }],
+          { session }
+        );
+
+        // Store the human-readable code in the guard profile
+        updateData.organizationCode = normalizedCode;
+      }
+
+      // Update guard profile in the same transaction
+      updatedGuard = await SecGaurd.findByIdAndUpdate(
+        guardId,
+        { $set: updateData },
+        {
+          returnDocument: "after",
+          runValidators: true,
+          session
+        }
+      ).select("-password -_id");
+
+      if (!updatedGuard) {
+        const error = new Error("Security guard not found");
+        error.status = 404;
+        throw error;
+      }
+    });
+
+    
+    //  Return successful response after transaction commits
+    return res.status(200).json({
+      message: normalizedCode !== undefined 
+      ? "Organization request submitted successfully. Awaiting approval."
+        : "Employee ID updated successfully.",
+      guard: updatedGuard
+    });
+
+  } catch (error) {
+    console.error("Update guard organization information error:", {
+      guardId: req.gaurdID?.id,
+      errorCode: error.code,
+      errorName: error.name,
+      timestamp: new Date().toISOString()
+    });
+
+    // Duplicate membership or unique-index errors
+    if (error.code === 11000) {
+      return res.status(409).json({
+        message:"A membership relationship already exists for this organization. If your request has not been approved, contact the organization."
+      });
+    }
+
+    // Custom route errors
+    if (error.status) {
+      return res.status(error.status).json({
+        message: error.message
+      });
+    }
+
+    // Mongoose validation errors
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      return res.status(400).json({
+        message: error.message
+      });
+    }
+
+    return res.status(500).json({
+      message: "Internal server error. Please try again later."
+    });
+
+  } finally {
+    // Always release the database session
+    if (session) {
+      await session.endSession();
+    }
+  }
+});
+
 
 module.exports = router;
