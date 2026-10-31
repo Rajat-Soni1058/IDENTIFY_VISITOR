@@ -11,7 +11,7 @@ const {createPvisitorToken}=require("../services/createPVisitorToken");
 
 // route to signup for new pvisitor // ------->
 router.route("/signup").post(async (req, res) => {
-    console.log("signup ho gya ladle");
+  
   try {
     const {
       name,
@@ -62,6 +62,7 @@ router.route("/signup").post(async (req, res) => {
 
 const visitorResponse = newPVisitor.toObject();
 delete visitorResponse.password;
+delete visitorResponse._id;
 delete visitorResponse.suspiciousCount;
 
 return res.status(201).json({
@@ -125,6 +126,7 @@ router.route("/signin").post(async (req, res) => {
     const visitorData = visitor.toObject();
 
     delete visitorData.password;
+    delete visitorData._id;
     delete visitorData.suspiciousCount;
 
     return res.status(200).json({
@@ -214,7 +216,7 @@ router.route("/updateinfo").put(checkValidPvisitor, async (req, res) => {
         returnDocument: "after",
         runValidators: true
       }
-    ).select("-password -suspiciousCount");
+    ).select("-password -suspiciousCount -_id");
 
     // 5. Check whether the visitor exists
     if (!updatedVisitor) {
