@@ -1,4 +1,3 @@
-
 require("dotenv").config();
 const express=require("express");
 const mongoose=require("mongoose");
@@ -7,7 +6,8 @@ const app=express();
 const PORT = process.env.PORT;
 
 //import from routes------->
-const handlePvisitor=require ("./routes/permanentVisitor")
+const handlePvisitor=require ("./routes/permanentVisitor");
+const handleSecurityGaurd=require("./routes/securityGuard");
 
 //middleware---->
 app.use(cors());
@@ -22,9 +22,11 @@ mongoose.connect(process.env.MONGODB_URL).then(()=>{
   });
 
 
-//Routes for permanent visitor------>
+//Route for permanent visitor------>
 app.use("/permanent_visitor",handlePvisitor);
 
+//Route for security Gaurd----->
+app.use("/security_gaurd",handleSecurityGaurd);
 
 
 
