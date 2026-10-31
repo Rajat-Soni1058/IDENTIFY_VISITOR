@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
+const mongoose = require("mongoose");
 
 
 const SecGaurd=require("../model/securityGaurdModel");
@@ -414,7 +415,7 @@ router.route("/updateOrganizationInfo").put(checkValidGuard, async (req, res) =>
       }
     });
 
-    
+
     //  Return successful response after transaction commits
     return res.status(200).json({
       message: normalizedCode !== undefined 
@@ -464,5 +465,77 @@ router.route("/updateOrganizationInfo").put(checkValidGuard, async (req, res) =>
   }
 });
 
+// Delete guard account ------------------>
+router.delete("/delete", checkValidGuard, async (req, res) => {
+  let session;
+
+  try {
+    const guardId = req.gaurdID.id;
+    const { currentPassword } = req.body || {};
+
+    // Validate password
+    if (typeof currentPassword !== "string" ||!currentPassword.trim()) {
+      return res.status(400).json({
+        message: "Current password is required"
+      });
+    }
+
+    // Find guard and retrieve password hash
+    const guard = await SecGaurd.findById(guardId).select("+password");
+    if (!guard) {
+      return res.status(404).json({
+        message: "Guard not found"
+      });
+    }
+    // Verify current password
+    const isPasswordCorrect = await bcrypt.compare(currentPassword,guard.password);
+
+    if (!isPasswordCorrect) {
+      return res.status(401).json({
+        message: "Incorrect password"
+      });
+    }
+
+    // Start transaction
+    session = await mongoose.startSession();
+
+    await session.withTransaction(async () => {
+
+    // Delete guard profile
+    const deletedGuard = await SecGaurd.findByIdAndDelete(guardId,{ session });
+
+      if (!deletedGuard) {
+        const error = new Error("Guard not found");
+        error.status = 404;
+        throw error;
+      }
+      // Delete all organization relationships
+    await OrganizationGuard.deleteMany({ guardId: deletedGuard._id },{ session });
+    });
+
+    return res.status(200).json({
+      message: "Guard account deleted successfully"
+    });
+
+  } catch (error) {
+    console.error("Guard deletion error:", error);
+
+    if (error.status === 404) {
+      return res.status(404).json({
+        message: error.message
+      });
+    }
+
+    return res.status(500).json({
+      message: "Failed to delete guard account"
+    });
+
+  } 
+  finally {
+    if (session) {
+      await session.endSession();
+    }
+  }
+});
 
 module.exports = router;
