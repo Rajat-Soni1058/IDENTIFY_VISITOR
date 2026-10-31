@@ -114,4 +114,62 @@ if (organizationCode !== undefined && organizationCode !== null) {
   }
 });
 
+
+// Sign in for the security guard
+router.route("/signin").post(async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    //  Validate required fields
+    if (!email || !password) {
+      return res.status(400).json({
+        message: "Please provide email and password"
+      });
+    }
+
+    // Find guard using email
+    const guard = await SecGaurd.findOne({
+      email: email.trim().toLowerCase()
+    }).select("+password");
+
+    if (!guard) {
+      return res.status(401).json({
+        message: "Invalid email "
+      });
+    }
+
+    // Compare entered password with hashed password
+    const isPasswordValid = await bcrypt.compare(password,guard.password);
+
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        message: "Invalid password"
+      });
+    }
+
+    // Generate JWT
+    const token = createGuardToken(guard._id);
+
+   // remove the password from object 
+  const guardData = guard.toObject();
+  delete guardData.password;
+  delete guardData._id;
+
+    //  Return successful response
+    return res.status(200).json({
+      message: "Signin successful",
+     token,
+    guard: guardData
+   });
+
+  } catch (error) {
+    console.error("Security guard signin error:", error);
+
+    return res.status(500).json({
+      message: "Internal server error"
+    });
+  }
+});
+
+
 module.exports = router;
