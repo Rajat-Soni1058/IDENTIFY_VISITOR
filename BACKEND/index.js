@@ -26,7 +26,7 @@ mongoose.connect(process.env.MONGODB_URL).then(()=>{
 app.use("/permanent_visitor",handlePvisitor);
 
 //Route for security Gaurd----->
-app.use("/security_gaurd",handleSecurityGaurd);
+app.use("/security_guard",handleSecurityGaurd);
 
 
 

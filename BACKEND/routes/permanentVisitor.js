@@ -11,7 +11,7 @@ const {createPvisitorToken}=require("../services/createPVisitorToken");
 
 // route to signup for new pvisitor // ------->
 router.route("/signup").post(async (req, res) => {
-  
+
   try {
     const {
       name,
@@ -162,8 +162,21 @@ router.route("/updateinfo").put(checkValidPvisitor, async (req, res) => {
     if (identityNumber !== undefined) updateData.identityNumber = identityNumber;
     if (purpose !== undefined) updateData.purpose = purpose;
 
+
+    // Check whether an email change was requested
+    if (email !== undefined) {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (typeof email !== "string" || !emailRegex.test(email.trim())) {
+        return res.status(400).json({
+          message: "Please enter a valid email address"
+        });
+      }
+    }
+
     //Check whether a password change was requested---------->
     const changingPassword = oldPassword !== undefined || newPassword !== undefined;
+    
     if (changingPassword) {
     // Both passwords are required
       if (!oldPassword || !newPassword) {
