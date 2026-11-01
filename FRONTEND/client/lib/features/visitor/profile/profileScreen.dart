@@ -1,7 +1,7 @@
-import 'package:client/auth/authGate.dart';
-import 'package:client/features/profile/deleteAccount.dart';
-import 'package:client/features/profile/updateProfileScreen.dart';
-import 'package:client/services/auth_service.dart';
+import 'package:client/auth/common_authGate.dart';
+import 'package:client/features/visitor/profile/deleteAccount.dart';
+import 'package:client/features/visitor/profile/updateProfileScreen.dart';
+import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -129,7 +129,7 @@ Future<void> _openUpdateProfile() async {
                   if (!context.mounted) return;
                   Navigator.pushAndRemoveUntil(
                     context,
-                    MaterialPageRoute(builder: (_) => AuthGate()),
+                    MaterialPageRoute(builder: (_) => CommonAuthGate()),
                     (route) => false,
                   );
                 },
