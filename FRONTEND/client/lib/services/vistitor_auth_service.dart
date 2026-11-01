@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:client/services/common_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:http/http.dart' as http;
@@ -32,7 +33,7 @@ class AuthService {
       value: data['visitor']['name'] ?? 'Visitor',
     );
     await saveProfile(Map<String, dynamic>.from(data['visitor']));
-print(data['visitor']);
+    await CommonAuthService.setVisitorSession();
 
     return data;
   }
@@ -75,6 +76,7 @@ print(data['visitor']);
       value: data['visitor']['name'] ?? 'Visitor',
     );
     await saveProfile(Map<String, dynamic>.from(data['visitor']));
+    await CommonAuthService.setVisitorSession();
     return data;
   }
 
@@ -94,9 +96,14 @@ print(data['visitor']);
     return Map<String, dynamic>.from(jsonDecode(data));
   }
 
+static Future<String?> getToken() async {
+  return await storage.read(key: 'token');
+}
+
+
   //CLEAR THE DATA from local storage
   static Future<void> clearAll() async {
-    await storage.deleteAll();
+    await CommonAuthService.logout();
   }
 
   //UPDATE PROFILE

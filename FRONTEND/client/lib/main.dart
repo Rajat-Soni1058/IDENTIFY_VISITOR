@@ -1,4 +1,4 @@
-import 'package:client/auth/authGate.dart';
+import 'package:client/auth/common_authGate.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -21,7 +21,7 @@ class MyApp extends StatelessWidget {
         theme: ThemeData(
           colorScheme: .fromSeed(seedColor: Colors.deepPurple),
         ),
-        home: AuthGate()
+        home: CommonAuthGate()
       ),
     );
   }

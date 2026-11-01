@@ -1,4 +1,4 @@
-import 'package:client/services/auth_service.dart';
+import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 
 class UpdateProfileScreen extends StatefulWidget {

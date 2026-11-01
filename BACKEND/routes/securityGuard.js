@@ -80,6 +80,11 @@ if (organizationCode !== undefined && organizationCode !== null) {
       organizationCode
     });
 
+    const guardData = guard.toObject();
+  delete guardData.password;
+  delete guardData._id;
+
+
     //Create pending organization membership
     if (organization) {
       await OrganizationGuard.create({
@@ -97,6 +102,7 @@ if (organizationCode !== undefined && organizationCode !== null) {
       message: organization
         ? "Signup successful. Waiting for organization approval."
         : "Signup successful.",
+       guard: guardData,
       token
     });
 

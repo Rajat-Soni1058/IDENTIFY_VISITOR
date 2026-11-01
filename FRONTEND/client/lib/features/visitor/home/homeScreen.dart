@@ -1,8 +1,7 @@
-import 'package:client/auth/authGate.dart';
-import 'package:client/features/profile/profileScreen.dart';
+import 'package:client/features/visitor/profile/profileScreen.dart';
 import 'package:client/providers/visit_provider.dart';
 import 'package:client/services/QRservice.dart';
-import 'package:client/services/auth_service.dart';
+import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
