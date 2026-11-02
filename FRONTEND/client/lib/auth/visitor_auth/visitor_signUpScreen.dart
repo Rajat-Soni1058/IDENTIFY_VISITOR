@@ -1,16 +1,16 @@
-import 'package:client/auth/visitor_auth/loginScreen.dart';
+import 'package:client/auth/visitor_auth/visitor_loginScreen.dart';
 import 'package:client/features/visitor/home/homeScreen.dart';
 import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 
-class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+class VisitorSignupScreen extends StatefulWidget {
+  const VisitorSignupScreen({super.key});
 
   @override
-  State<SignupScreen> createState() => _SignupScreenState();
+  State<VisitorSignupScreen> createState() => _VisitorSignupScreenState();
 }
 
-class _SignupScreenState extends State<SignupScreen> {
+class _VisitorSignupScreenState extends State<VisitorSignupScreen> {
   final _formKey = GlobalKey<FormState>();
 
   final emailController = TextEditingController();
@@ -96,7 +96,7 @@ class _SignupScreenState extends State<SignupScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (_) => Homescreen(
+          builder: (_) => VisitorHomescreen(
             token: result['token'].toString(),
  ),
         ),
@@ -380,7 +380,7 @@ class _SignupScreenState extends State<SignupScreen> {
                           Navigator.pushReplacement(
                             context,
                             MaterialPageRoute(
-                              builder: (_) => const LoginScreen(),
+                              builder: (_) => const VisitorLoginScreen(),
                             ),
                           );
                         },

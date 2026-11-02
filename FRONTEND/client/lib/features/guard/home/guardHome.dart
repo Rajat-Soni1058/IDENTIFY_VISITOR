@@ -1,9 +1,9 @@
-import 'package:client/auth/common_authGate.dart';
+import 'package:client/auth/common/common_authGate.dart';
 import 'package:client/services/guard_auth_service.dart';
 import 'package:flutter/material.dart';
 
-class Guardhome extends StatelessWidget {
-  const Guardhome({super.key});
+class GuardhomeScreen extends StatelessWidget {
+  const GuardhomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {

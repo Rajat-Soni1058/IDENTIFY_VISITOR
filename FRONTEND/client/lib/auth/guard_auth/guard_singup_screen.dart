@@ -132,7 +132,7 @@ class _GuardSignupScreenState extends State<GuardSignupScreen> {
 Navigator.pushAndRemoveUntil(
   context,
   MaterialPageRoute(
-    builder: (context) => const Guardhome(),
+    builder: (context) => const GuardhomeScreen(),
   ),
   (route) => false,
 );

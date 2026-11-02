@@ -1,6 +1,6 @@
 import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
-import 'package:client/auth/role_selection_screen.dart';
+import 'package:client/auth/common/role_selection_screen.dart';
 import 'package:client/features/guard/home/guardHome.dart';
 import 'package:client/features/visitor/home/homeScreen.dart';
 import 'package:client/services/common_auth_service.dart';
@@ -28,7 +28,7 @@ class CommonAuthGate extends StatelessWidget {
         }
 
         if (snapshot.data == 'guard') {
-          return const Guardhome();
+          return const GuardhomeScreen();
         }
 
         if (snapshot.data == 'visitor') {
@@ -48,7 +48,7 @@ class CommonAuthGate extends StatelessWidget {
                 return const RoleSelectionScreen();
               }
 
-              return Homescreen(
+              return VisitorHomescreen(
                 token: tokenSnapshot.data!,
               );
             },
