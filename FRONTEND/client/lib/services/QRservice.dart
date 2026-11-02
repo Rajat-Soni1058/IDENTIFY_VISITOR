@@ -2,7 +2,7 @@ import 'dart:convert';
 
 class Qrservice {
   
-  static String generateQrData(String token, int entry,int nonce){
+  static String generateQrData(String token, int entry,int nonce, DateTime time){
     final parts = token.split('.');
     if(parts.length != 3){
       throw const FormatException('Invalid JWT token');
@@ -20,6 +20,7 @@ class Qrservice {
       'uid' : uid.toString(),
       'entry' : entry,
       'nonce': nonce,
+      'dateTime':time.toIso8601String(),
     });
   }
 }

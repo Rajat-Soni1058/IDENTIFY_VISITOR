@@ -1,5 +1,5 @@
 import 'package:client/auth/guard_auth/guard_login_screen.dart';
-import 'package:client/auth/visitor_auth/loginScreen.dart';
+import 'package:client/auth/visitor_auth/visitor_loginScreen.dart';
 import 'package:flutter/material.dart';
 
 class RoleSelectionScreen extends StatelessWidget {
@@ -64,7 +64,7 @@ class RoleSelectionScreen extends StatelessWidget {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const LoginScreen(),
+                        builder: (_) => const VisitorLoginScreen(),
                       ),
                     );
                   },

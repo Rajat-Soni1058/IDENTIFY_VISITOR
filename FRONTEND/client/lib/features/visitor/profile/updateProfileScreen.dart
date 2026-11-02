@@ -1,16 +1,16 @@
 import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 
-class UpdateProfileScreen extends StatefulWidget {
+class VisitorUpdateProfileScreen extends StatefulWidget {
   final Map<String, dynamic> profile;
 
-  const UpdateProfileScreen({super.key, required this.profile});
+  const VisitorUpdateProfileScreen({super.key, required this.profile});
 
   @override
-  State<UpdateProfileScreen> createState() => _UpdateProfileScreenState();
+  State<VisitorUpdateProfileScreen> createState() => _VisitorUpdateProfileScreenState();
 }
 
-class _UpdateProfileScreenState extends State<UpdateProfileScreen> {
+class _VisitorUpdateProfileScreenState extends State<VisitorUpdateProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _nameController;

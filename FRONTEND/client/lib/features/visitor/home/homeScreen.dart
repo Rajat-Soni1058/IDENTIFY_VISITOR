@@ -8,15 +8,15 @@ import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:math';
 
-class Homescreen extends ConsumerStatefulWidget {
+class VisitorHomescreen extends ConsumerStatefulWidget {
   final String token;
-  const Homescreen({required this.token});
+  const VisitorHomescreen({required this.token});
 
   @override
-  ConsumerState<Homescreen> createState() => _HomescreenState();
+  ConsumerState<VisitorHomescreen> createState() => _HomescreenState();
 }
 
-class _HomescreenState extends ConsumerState<Homescreen> {
+class _HomescreenState extends ConsumerState<VisitorHomescreen> {
   late int nonce;
   String visitorName = 'Visitor';
 
@@ -54,7 +54,7 @@ Future<void> _loadVisitorName() async {
     String qrData = '';
     String? error;
     try {
-      qrData = Qrservice.generateQrData(widget.token, entry, nonce);
+      qrData = Qrservice.generateQrData(widget.token, entry, nonce, DateTime.now());
     } catch (e) {
       error = 'Something went wrong. Unable to generate QR code.';
     }
@@ -69,7 +69,7 @@ Future<void> _loadVisitorName() async {
                 context,
                 MaterialPageRoute(
                   builder: (context) =>
-                      ProfileScreen(),
+                      VisitorProfileScreen(),
                 ),
               );
               await _loadVisitorName();

@@ -1,17 +1,17 @@
-import 'package:client/auth/common_authGate.dart';
+import 'package:client/auth/common/common_authGate.dart';
 import 'package:client/features/visitor/profile/deleteAccount.dart';
 import 'package:client/features/visitor/profile/updateProfileScreen.dart';
 import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 
-class ProfileScreen extends StatefulWidget {
-  const ProfileScreen({super.key});
+class VisitorProfileScreen extends StatefulWidget {
+  const VisitorProfileScreen({super.key});
 
   @override
-  State<ProfileScreen> createState() => _ProfileScreenState();
+  State<VisitorProfileScreen> createState() => _VisitorProfileScreenState();
 }
 
-class _ProfileScreenState extends State<ProfileScreen> {
+class _VisitorProfileScreenState extends State<VisitorProfileScreen> {
 
 late Future<Map<String, dynamic>?> _profileFuture;
 
@@ -47,7 +47,7 @@ Future<void> _openUpdateProfile() async {
       await Navigator.push<Map<String, dynamic>>(
     context,
     MaterialPageRoute(
-      builder: (_) => UpdateProfileScreen(profile: profile),
+      builder: (_) => VisitorUpdateProfileScreen(profile: profile),
     ),
   );
 

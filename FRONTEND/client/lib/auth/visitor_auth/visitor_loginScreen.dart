@@ -1,16 +1,16 @@
-import 'package:client/auth/visitor_auth/signUpScreen.dart';
+import 'package:client/auth/visitor_auth/visitor_signUpScreen.dart';
 import 'package:client/features/visitor/home/homeScreen.dart';
 import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class VisitorLoginScreen extends StatefulWidget {
+  const VisitorLoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  State<VisitorLoginScreen> createState() => _VisitorLoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _VisitorLoginScreenState extends State<VisitorLoginScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
@@ -32,7 +32,7 @@ class _LoginScreenState extends State<LoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => Homescreen(
+          builder: (_) => VisitorHomescreen(
             token: result['token'],
           ),
         ),
@@ -123,7 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => const SignupScreen(),
+                        builder: (_) => const VisitorSignupScreen(),
                       ),
                     );
                   },
