@@ -51,9 +51,9 @@ const securityGuardSchema = new mongoose.Schema(
       trim: true
     },
     organizationCode: {
+        
       type: String,
-      ref: "Organization",
-      default: null
+       default: null
     }
   },
   {

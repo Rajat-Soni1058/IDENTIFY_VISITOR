@@ -8,7 +8,7 @@ const PORT = process.env.PORT;
 //import from routes------->
 const handlePvisitor=require ("./routes/permanentVisitor");
 const handleSecurityGaurd=require("./routes/securityGuard");
-
+const handleScan=require("./routes/organizationVisit");
 //middleware---->
 app.use(cors());
 app.use(express.json());
@@ -28,6 +28,8 @@ app.use("/permanent_visitor",handlePvisitor);
 //Route for security Gaurd----->
 app.use("/security_guard",handleSecurityGaurd);
 
+//Route for scan ------>
+app.use("/scan_visitor",handleScan);
 
 
 
