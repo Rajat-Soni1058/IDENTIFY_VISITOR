@@ -38,76 +38,23 @@ try {
 
    const { visitorId, activity, organizationCode, timestamp } = req.body || {};
 
-const QR_VALIDITY_MS = 3 * 60 * 1000; // 3 minutes
-const MAX_CLOCK_SKEW_MS = 3 * 60 * 1000; // 3 minutes
+   // check the expiry of qr
+   const QR_VALIDITY_MS = 3 * 60 * 1000; // 3 minutes
+   const MAX_CLOCK_SKEW_MS = 3 * 60 * 1000;   // 3 minutes 
 
-// Validate timestamp
-if (typeof timestamp !== "string" || !timestamp.trim()) {
-  return res.status(400).json({
-    error: true,
-    message: "Invalid QR timestamp."
-  });
-}
+    if (typeof timestamp !== "number" || !Number.isFinite(timestamp)) {
+    return res.status(400).json({
+        message: "Invalid QR timestamp."
+    });
+  }
+    const currentTime = Date.now();
+    const qrAge = currentTime - timestamp;
 
-// Expected format: YYYY-MM-DD HH:mm:ss.SSSSSS
-const timestampMatch = timestamp.match(
-  /^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2}):(\d{2})\.(\d{6})$/
-);
-
-if (!timestampMatch) {
-  return res.status(400).json({
-    error: true,
-    message: "Invalid QR timestamp format."
-  });
-}
-
-const [, year, month, day, hours, minutes, seconds, microseconds] = timestampMatch;
-
-const qrDate = new Date(
-  Number(year),
-  Number(month) - 1,
-  Number(day),
-  Number(hours),
-  Number(minutes),
-  Number(seconds),
-  Number(microseconds.slice(0, 3))
-);
-
-// Reject invalid calendar dates and times
-if (
-  qrDate.getFullYear() !== Number(year) ||
-  qrDate.getMonth() !== Number(month) - 1 ||
-  qrDate.getDate() !== Number(day) ||
-  qrDate.getHours() !== Number(hours) ||
-  qrDate.getMinutes() !== Number(minutes) ||
-  qrDate.getSeconds() !== Number(seconds)
-) {
-  return res.status(400).json({
-    error: true,
-    message: "Invalid QR date or time."
-  });
-}
-
-// Check QR age
-const qrTime = qrDate.getTime();
-const currentTime = Date.now();
-const qrAge = currentTime - qrTime;
-
-// Reject future timestamps beyond allowed clock skew
-if (qrAge < -MAX_CLOCK_SKEW_MS) {
-  return res.status(400).json({
-    error: true,
-    message: "Invalid QR timestamp. Please generate a new QR code."
-  });
-}
-
-// Reject expired QR codes, including those generated on previous dates
-if (qrAge > QR_VALIDITY_MS) {
-  return res.status(410).json({
-    error: true,
-    message: "This QR code has expired. Please generate a new QR code."
-  });
-}
+   if (qrAge > QR_VALIDITY_MS || qrAge < -MAX_CLOCK_SKEW_MS) {
+    return res.status(410).json({
+        message: "This QR code has expired. Ask the visitor to generate a new QR code."
+    });
+  }
 
 
     if (!mongoose.isValidObjectId(guardId)) {
