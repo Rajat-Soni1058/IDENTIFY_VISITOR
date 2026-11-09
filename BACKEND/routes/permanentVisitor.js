@@ -6,7 +6,7 @@ const bcrypt = require("bcryptjs");
 const Pvisitor = require("../model/permanentVisitorModel");
 const {checkValidPvisitor}= require("../middleware/checkValidPVisitor")
 const {createPvisitorToken}=require("../services/createPVisitorToken");
-
+const {validateAadhaarNumber}=require("../services/isValidAadhaarNumber");
 
 
 // route to signup for new pvisitor // ------->
@@ -31,7 +31,14 @@ router.route("/signup").post(async (req, res) => {
         error: "Name, email, and password are required"
       });
     }
-
+    // VALIDATE AADHAAR NUMBER
+    const aadhaarResult = validateAadhaarNumber(identityNumber);
+    if (!aadhaarResult.valid) {
+    return res.status(400).json({
+        error: aadhaarResult.message
+    });
+   }
+   
     // Check if user already exists
     const visitor = await Pvisitor.findOne({ email });
 
@@ -40,6 +47,17 @@ router.route("/signup").post(async (req, res) => {
         error: "User already exists"
       });
     }
+
+    // check that adhaar exist already 
+    const existingAadhaar = await Pvisitor.findOne({
+    identityNumber: aadhaarResult.normalizedNumber
+    }).select("_id").lean();
+
+   if (existingAadhaar) {
+    return res.status(409).json({
+        error: "This Aadhaar number is already registered."
+    });
+  }
 
     // Hash password
     const hashedpassword = await bcrypt.hash(password, 10);
@@ -53,7 +71,7 @@ router.route("/signup").post(async (req, res) => {
       age,
       gender,
       phoneNumber,
-      identityNumber,
+      identityNumber: aadhaarResult.normalizedNumber,
       purpose
     });
 
@@ -72,10 +90,25 @@ return res.status(201).json({
 });
   }
    catch (error) {
-    return res.status(400).json({
-      message: error.message
+
+    if (error.code === 11000) {
+        return res.status(409).json({
+            error: "Email or Aadhaar number is already registered."
+        });
+    }
+
+    if ( error.name === "ValidationError" || error.name === "CastError") {
+        return res.status(400).json({
+            error: "Invalid visitor information."
+        });
+    }
+
+    console.error("Visitor signup failed:", error.name);
+    return res.status(500).json({
+        error: "Internal server error during signup."
     });
-  }
+}
+
 });
 
 
