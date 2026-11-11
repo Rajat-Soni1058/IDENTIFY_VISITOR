@@ -8,7 +8,9 @@ const PORT = process.env.PORT;
 //import from routes------->
 const handlePvisitor=require ("./routes/permanentVisitor");
 const handleSecurityGaurd=require("./routes/securityGuard");
-const handleScan=require("./routes/organizationVisit");
+const handleScan=require("./routes/organizationVisitorPerm");
+const temporaryVisitor=require("./routes/organizationVisitorTemp");
+
 //middleware---->
 app.use(cors());
 app.use(express.json());
@@ -22,14 +24,17 @@ mongoose.connect(process.env.MONGODB_URL).then(()=>{
   });
 
 
-//Route for permanent visitor------>
+//Route for permanent visitor  ------>
 app.use("/permanent_visitor",handlePvisitor);
 
-//Route for security Gaurd----->
+//Route for security Gaurd   ----->
 app.use("/security_guard",handleSecurityGaurd);
 
-//Route for scan ------>
-app.use("/scan_visitor",handleScan);
+//Route for visitor having app   ------>
+app.use("/scan_appVisitor",handleScan);
+
+//Route for visitor not having app -------->
+app.use("/scan_nonAppVisitor",temporaryVisitor);
 
 
 
