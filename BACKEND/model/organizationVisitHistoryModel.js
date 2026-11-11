@@ -17,14 +17,14 @@ const activitySchema = new mongoose.Schema(
         },
 
         entryTime: {
-          type: Date,
-         default: null
-         },
+            type: Date,
+            default: null
+        },
 
-       exitTime: {
-       type: Date,
-       default: null
-}
+        exitTime: {
+            type: Date,
+            default: null
+        }
     },
     { timestamps: false }
 );
@@ -41,25 +41,26 @@ const organizationVisitHistorySchema = new mongoose.Schema(
         visitorId: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "PermanentVisitor",
-            required: true
+            default: null
         },
 
         visitDate: {
-          type: String,
-          required: true,
-          immutable: true
-           },
+            type: String,
+            required: true,
+            immutable: true
+        },
 
         name: {
             type: String,
             required: true,
             trim: true
         },
+
         email: {
             type: String,
-            required: true,
             trim: true,
-            lowercase: true
+            lowercase: true,
+            default: null
         },
 
         phoneNumber: {
@@ -73,6 +74,12 @@ const organizationVisitHistorySchema = new mongoose.Schema(
             trim: true
         },
 
+        age: {
+            type: Number,
+            min: 1,
+            max: 120
+        },
+
         gender: {
             type: String,
             trim: true
@@ -80,8 +87,11 @@ const organizationVisitHistorySchema = new mongoose.Schema(
 
         identityNumber: {
             type: String,
+            required: true,
+            trim: true,
             select: false
         },
+
         activity: {
             type: [activitySchema],
             default: []
@@ -90,17 +100,43 @@ const organizationVisitHistorySchema = new mongoose.Schema(
     { timestamps: true }
 );
 
+
+// Registered visitor: one document per organization per date
 organizationVisitHistorySchema.index(
-    { organizationId: 1,visitorId: 1,visitDate: 1},{ unique: true }
+    {
+        organizationId: 1,
+        visitorId: 1,
+        visitDate: 1
+    },
+    {
+        unique: true,
+        partialFilterExpression: {
+            visitorId: { $type: "objectId" }
+        }
+    }
 );
 
+
+// Organization-wise date history
 organizationVisitHistorySchema.index({
     organizationId: 1,
     visitDate: -1
 });
 
 
+// Find temporary visitor's latest history
+organizationVisitHistorySchema.index({
+    organizationId: 1,
+    visitorId: 1,
+    identityNumber: 1,
+    createdAt: -1,
+    _id: -1
+});
 
 
-const OrganizationVisitHistory = mongoose.model("OrganizationVisitHistory",organizationVisitHistorySchema);
+const OrganizationVisitHistory = mongoose.model(
+    "OrganizationVisitHistory",
+    organizationVisitHistorySchema
+);
+
 module.exports = OrganizationVisitHistory;
