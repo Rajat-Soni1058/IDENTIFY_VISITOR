@@ -10,6 +10,7 @@ const handlePvisitor=require ("./routes/permanentVisitor");
 const handleSecurityGaurd=require("./routes/securityGuard");
 const handleScan=require("./routes/organizationVisitorPerm");
 const temporaryVisitor=require("./routes/organizationVisitorTemp");
+const handleGuardHome=require("./routes/guardHomePage");
 
 //middleware---->
 app.use(cors());
@@ -36,7 +37,8 @@ app.use("/scan_appVisitor",handleScan);
 //Route for visitor not having app -------->
 app.use("/scan_nonAppVisitor",temporaryVisitor);
 
-
+//Route for guard home page----------->
+app.use("/guardHomePage",handleGuardHome);
 
 
 
