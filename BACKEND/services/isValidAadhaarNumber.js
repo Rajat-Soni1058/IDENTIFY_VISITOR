@@ -17,8 +17,8 @@ const permutationTable = [
     [1,5,7,6,2,8,3,0,9,4],
     [5,8,0,3,7,9,6,1,4,2],
     [8,9,1,6,0,4,3,5,2,7],
-    [9,4,2,7,5,3,1,8,6,0],
-    [4,2,8,6,1,7,5,9,0,3],
+    [9,4,5,3,1,2,6,8,7,0],
+    [4,2,8,6,5,7,3,9,0,1],
     [2,7,9,3,8,0,6,4,1,5],
     [7,0,4,6,9,1,3,2,5,8]
 ];
@@ -41,12 +41,11 @@ function isValidVerhoeff(number) {
 // MAIN AADHAAR VALIDATION FUNCTION
 function validateAadhaarNumber(identityNumber) {
 
-    // CHECK 1: REQUIRED FIELD VALIDATION
+    // CHECK 1: REQUIRED FIELD
     if (
         identityNumber === undefined ||
         identityNumber === null ||
-        (typeof identityNumber === "string" &&
-         identityNumber.trim() === "")
+        (typeof identityNumber === "string" && identityNumber.trim() === "")
     ) {
         return {
             valid: false,
@@ -54,20 +53,21 @@ function validateAadhaarNumber(identityNumber) {
         };
     }
 
-
-    // CHECK 2: INPUT FORMAT VALIDATION
-    if ( typeof identityNumber !== "string" || !/^[0-9 -]+$/.test(identityNumber)) {
+    // CHECK 2: INPUT FORMAT
+    if (
+        typeof identityNumber !== "string" ||
+        !/^[0-9 -]+$/.test(identityNumber)
+    ) {
         return {
             valid: false,
             message: "Aadhaar number can contain only digits, spaces and hyphens."
         };
     }
 
-    // Remove allowed spaces and hyphens
+    // CHECK 3: NORMALIZATION
     const normalizedNumber = identityNumber.replace(/[ -]/g, "");
 
-
-    // CHECK 3: LENGTH VALIDATION
+    // CHECK 4: LENGTH
     if (normalizedNumber.length !== 12) {
         return {
             valid: false,
@@ -75,8 +75,7 @@ function validateAadhaarNumber(identityNumber) {
         };
     }
 
-
-    // CHECK 4: STARTING DIGIT VALIDATION
+    // CHECK 5: STARTING DIGIT
     if (normalizedNumber[0] === "0" || normalizedNumber[0] === "1") {
         return {
             valid: false,
@@ -84,8 +83,7 @@ function validateAadhaarNumber(identityNumber) {
         };
     }
 
-
-    // CHECK 5: VERHOEFF CHECKSUM VALIDATION
+    // CHECK 6: VERHOEFF
     if (!isValidVerhoeff(normalizedNumber)) {
         return {
             valid: false,
@@ -93,14 +91,11 @@ function validateAadhaarNumber(identityNumber) {
         };
     }
 
-
-    // ALL CHECKS PASSED
     return {
         valid: true,
         message: "Aadhaar number passed format and checksum validation.",
         normalizedNumber
     };
 }
-
 
 module.exports = { validateAadhaarNumber };

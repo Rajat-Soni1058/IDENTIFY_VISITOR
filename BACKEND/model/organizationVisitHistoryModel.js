@@ -89,9 +89,7 @@ const organizationVisitHistorySchema = new mongoose.Schema(
             type: String,
             required: true,
             trim: true,
-            select: false
-        },
-
+           },
         activity: {
             type: [activitySchema],
             default: []
