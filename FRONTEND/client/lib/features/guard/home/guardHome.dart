@@ -1,4 +1,7 @@
 
+import 'package:client/auth/common/common_authGate.dart';
+import 'package:client/services/common_auth_service.dart';
+import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 
 class GuardhomeScreen extends StatelessWidget {
@@ -300,15 +303,15 @@ class GuardhomeScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(width: 7),
-                  Expanded(
-                    child: summaryCard(
-                      Icons.access_time_filled,
-                      "4",
-                      "Inside",
-                      const Color(0xFFFFF4DE),
-                      Colors.orange,
-                    ),
-                  ),
+                  // Expanded(
+                  //   child: summaryCard(
+                  //     Icons.access_time_filled,
+                  //     "4",
+                  //     "Inside",
+                  //     const Color(0xFFFFF4DE),
+                  //     Colors.orange,
+                  //   ),
+                  // ),
                 ],
               ),
 
@@ -334,7 +337,7 @@ class GuardhomeScreen extends StatelessWidget {
                     const SizedBox(width: 12),
                     const Expanded(
                       child: Text(
-                        "Currently Inside",
+                        "Search History",
                         style: TextStyle(
                           fontWeight: FontWeight.w600,
                           fontSize: 16,
@@ -402,6 +405,10 @@ class GuardhomeScreen extends StatelessWidget {
                   ),
                 ],
               ),
+              ElevatedButton(onPressed: ()async{
+                await CommonAuthService.logout();
+                Navigator.pushAndRemoveUntil(context, MaterialPageRoute(builder: (_)=>CommonAuthGate()), (Route)=>false);
+              }, child: Text("Logout"))
             ],
           ),
         ),

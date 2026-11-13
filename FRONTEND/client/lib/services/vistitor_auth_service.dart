@@ -66,9 +66,13 @@ class AuthService {
       }),
     );
     final data = jsonDecode(response.body);
-    if (response.statusCode != 201) {
-      throw Exception(data['error'] ?? data['message'] ?? 'Signup failed');
-    }
+   if (response.statusCode != 201) {
+  throw Exception(
+    data['error'] ??
+        data['message'] ??
+        'Signup failed',
+  );
+}
 
     await storage.write(key: 'token', value: data['token']);
     await storage.write(

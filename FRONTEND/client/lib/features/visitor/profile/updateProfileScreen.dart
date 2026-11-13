@@ -1,4 +1,5 @@
 import 'package:client/services/vistitor_auth_service.dart';
+import 'package:client/features/visitor/visitor_ui.dart';
 import 'package:flutter/material.dart';
 
 class VisitorUpdateProfileScreen extends StatefulWidget {
@@ -7,10 +8,12 @@ class VisitorUpdateProfileScreen extends StatefulWidget {
   const VisitorUpdateProfileScreen({super.key, required this.profile});
 
   @override
-  State<VisitorUpdateProfileScreen> createState() => _VisitorUpdateProfileScreenState();
+  State<VisitorUpdateProfileScreen> createState() =>
+      _VisitorUpdateProfileScreenState();
 }
 
-class _VisitorUpdateProfileScreenState extends State<VisitorUpdateProfileScreen> {
+class _VisitorUpdateProfileScreenState
+    extends State<VisitorUpdateProfileScreen> {
   final _formKey = GlobalKey<FormState>();
 
   late final TextEditingController _nameController;
@@ -74,71 +77,66 @@ class _VisitorUpdateProfileScreenState extends State<VisitorUpdateProfileScreen>
     return null;
   }
 
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
 
-Future<void> _submitForm() async {
-  if (!_formKey.currentState!.validate()) return;
+    final original = widget.profile;
 
-  final original = widget.profile;
+    final hasChanges =
+        _nameController.text.trim() != _value(original['name']) ||
+        _emailController.text.trim() != _value(original['email']) ||
+        _addressController.text.trim() != _value(original['address']) ||
+        _phoneController.text.trim() != _value(original['phoneNumber']) ||
+        _identityController.text.trim() != _value(original['identityNumber']) ||
+        int.parse(_ageController.text.trim()) !=
+            int.tryParse(_value(original['age'])) ||
+        _gender != _value(original['gender']).toLowerCase() ||
+        _purposeController.text.trim() != _value(original['purpose']);
 
-  final hasChanges =
-      _nameController.text.trim() != _value(original['name']) ||
-      _emailController.text.trim() != _value(original['email']) ||
-      _addressController.text.trim() != _value(original['address']) ||
-      _phoneController.text.trim() != _value(original['phoneNumber']) ||
-      _identityController.text.trim() !=
-          _value(original['identityNumber']) ||
-      int.parse(_ageController.text.trim()) !=
-          int.tryParse(_value(original['age'])) ||
-      _gender != _value(original['gender']).toLowerCase() ||
-      _purposeController.text.trim() != _value(original['purpose']);
+    if (!hasChanges) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('No changes to update')));
+      return;
+    }
 
-  if (!hasChanges) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('No changes to update')),
-    );
-    return;
-  }
+    setState(() => _isLoading = true);
 
-  setState(() => _isLoading = true);
+    try {
+      final updatedProfile = await AuthService.updateInfo(
+        name: _nameController.text.trim(),
+        email: _emailController.text.trim(),
+        address: _addressController.text.trim(),
+        phoneNumber: _phoneController.text.trim(),
+        identityNumber: _identityController.text.trim(),
+        age: int.parse(_ageController.text.trim()),
+        gender: _gender!,
+        purpose: _purposeController.text.trim(),
+      );
 
-  try {
-    final updatedProfile = await AuthService.updateInfo(
-      name: _nameController.text.trim(),
-      email: _emailController.text.trim(),
-      address: _addressController.text.trim(),
-      phoneNumber: _phoneController.text.trim(),
-      identityNumber: _identityController.text.trim(),
-      age: int.parse(_ageController.text.trim()),
-      gender: _gender!,
-      purpose: _purposeController.text.trim(),
-    );
+      if (!mounted) return;
 
-    if (!mounted) return;
+      Navigator.pop(context, updatedProfile);
+    } catch (e) {
+      if (!mounted) return;
 
-    Navigator.pop(context, updatedProfile);
-  } catch (e) {
-    if (!mounted) return;
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(e.toString())),
-    );
-  } finally {
-    if (mounted) {
-      setState(() => _isLoading = false);
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
-}
 
-
-
-Future<void> _showResetPasswordDialog() async {
-  await showDialog<void>(
-    context: context,
-    barrierDismissible: false,
-    builder: (_) => const ResetPasswordDialog(),
-  );
-}
-
+  Future<void> _showResetPasswordDialog() async {
+    await showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const ResetPasswordDialog(),
+    );
+  }
 
   Widget _buildTextField({
     required String label,
@@ -156,7 +154,6 @@ Future<void> _showResetPasswordDialog() async {
         validator: validator,
         decoration: InputDecoration(
           labelText: label,
-          border: const OutlineInputBorder(),
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 14,
             vertical: 16,
@@ -168,151 +165,159 @@ Future<void> _showResetPasswordDialog() async {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Update Profile')),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(20),
-            children: [
-              const Text(
-                'Edit your information',
-                style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Update your details below.',
-                style: TextStyle(color: Colors.grey),
-              ),
-              const SizedBox(height: 24),
+    return Theme(
+      data: VisitorUi.theme(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Update Profile',
+            style: TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ),
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(22, 12, 22, 28),
+              children: [
+                VisitorUi.sectionTitle(
+                  'Edit your information',
+                  'Keep your visitor details up to date',
+                ),
+                const SizedBox(height: 24),
 
-              _buildTextField(
-                label: 'Full Name',
-                controller: _nameController,
-                validator: _requiredValidator,
-              ),
+                _buildTextField(
+                  label: 'Full Name',
+                  controller: _nameController,
+                  validator: _requiredValidator,
+                ),
 
-              _buildTextField(
-                label: 'Email',
-                controller: _emailController,
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Email is required';
-                  }
-                  if (!RegExp(
-                    r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
-                  ).hasMatch(value.trim())) {
-                    return 'Enter a valid email';
-                  }
-                  return null;
-                },
-              ),
-
-              _buildTextField(
-                label: 'Address',
-                controller: _addressController,
-                validator: _requiredValidator,
-              ),
-
-              _buildTextField(
-                label: 'Phone Number',
-                controller: _phoneController,
-                keyboardType: TextInputType.phone,
-                validator: _requiredValidator,
-              ),
-
-              _buildTextField(
-                label: 'Identity Number',
-                controller: _identityController,
-                validator: _requiredValidator,
-              ),
-
-              _buildTextField(
-                label: 'Age',
-                controller: _ageController,
-                keyboardType: TextInputType.number,
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) {
-                    return 'Age is required';
-                  }
-
-                  final age = int.tryParse(value.trim());
-
-                  if (age == null || age < 1 || age > 120) {
-                    return 'Enter a valid age';
-                  }
-
-                  return null;
-                },
-              ),
-
-              Padding(
-                padding: const EdgeInsets.only(bottom: 16),
-                child: DropdownButtonFormField<String>(
-                  value: _gender,
-                  decoration: const InputDecoration(
-                    labelText: 'Gender',
-                    border: OutlineInputBorder(),
-                  ),
-                  items: const [
-                    DropdownMenuItem(value: 'male', child: Text('Male')),
-                    DropdownMenuItem(value: 'female', child: Text('Female')),
-                    DropdownMenuItem(value: 'other', child: Text('Other')),
-                  ],
+                _buildTextField(
+                  label: 'Email',
+                  controller: _emailController,
+                  keyboardType: TextInputType.emailAddress,
                   validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please select your gender';
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Email is required';
+                    }
+                    if (!RegExp(
+                      r'^[^@\s]+@[^@\s]+\.[^@\s]+$',
+                    ).hasMatch(value.trim())) {
+                      return 'Enter a valid email';
                     }
                     return null;
                   },
-                  onChanged: (value) {
-                    setState(() {
-                      _gender = value;
-                    });
+                ),
+
+                _buildTextField(
+                  label: 'Address',
+                  controller: _addressController,
+                  validator: _requiredValidator,
+                ),
+
+                _buildTextField(
+                  label: 'Phone Number',
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
+                  validator: _requiredValidator,
+                ),
+
+                _buildTextField(
+                  label: 'Aadhaar Number',
+                  controller: _identityController,
+                  keyboardType: TextInputType.number,
+                  validator: _requiredValidator,
+                ),
+
+                _buildTextField(
+                  label: 'Age',
+                  controller: _ageController,
+                  keyboardType: TextInputType.number,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return 'Age is required';
+                    }
+
+                    final age = int.tryParse(value.trim());
+
+                    if (age == null || age < 1 || age > 120) {
+                      return 'Enter a valid age';
+                    }
+
+                    return null;
                   },
                 ),
-              ),
 
-              _buildTextField(
-                label: 'Purpose of Visit',
-                controller: _purposeController,
-                validator: _requiredValidator,
-              ),
-
-              const SizedBox(height: 12),
-
-              
-const SizedBox(height: 12),
-
-OutlinedButton.icon(
-  onPressed: _isLoading ? null : _showResetPasswordDialog,
-  icon: const Icon(Icons.lock_reset),
-  label: const Text('Reset Password'),
-  style: OutlinedButton.styleFrom(
-    foregroundColor: Colors.blue,
-    padding: const EdgeInsets.symmetric(vertical: 16),
-  ),
-),
-
-const SizedBox(height: 12,),
-
-              ElevatedButton.icon(
-                onPressed: _isLoading ? null : _submitForm,
-                icon: _isLoading
-                    ? const SizedBox(
-                        width: 18,
-                        height: 18,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.save),
-                label: Text(_isLoading ? 'Updating...' : 'Update Profile'),
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16),
+                  child: DropdownButtonFormField<String>(
+                    value: _gender,
+                    decoration: const InputDecoration(
+                      labelText: 'Gender',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: const [
+                      DropdownMenuItem(value: 'male', child: Text('Male')),
+                      DropdownMenuItem(value: 'female', child: Text('Female')),
+                      DropdownMenuItem(value: 'other', child: Text('Other')),
+                    ],
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return 'Please select your gender';
+                      }
+                      return null;
+                    },
+                    onChanged: (value) {
+                      setState(() {
+                        _gender = value;
+                      });
+                    },
+                  ),
                 ),
-              ),
-            ],
+
+                _buildTextField(
+                  label: 'Purpose of Visit',
+                  controller: _purposeController,
+                  validator: _requiredValidator,
+                ),
+
+                const SizedBox(height: 12),
+
+                const SizedBox(height: 12),
+
+                OutlinedButton.icon(
+                  onPressed: _isLoading ? null : _showResetPasswordDialog,
+                  icon: const Icon(Icons.lock_reset),
+                  label: const Text('Reset Password'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
+                ),
+
+                const SizedBox(height: 12),
+
+                ElevatedButton.icon(
+                  onPressed: _isLoading ? null : _submitForm,
+                  icon: _isLoading
+                      ? const SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.save),
+                  label: Text(_isLoading ? 'Updating...' : 'Update Profile'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: VisitorUi.green,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(54),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -320,13 +325,11 @@ const SizedBox(height: 12,),
   }
 }
 
-
 class ResetPasswordDialog extends StatefulWidget {
   const ResetPasswordDialog({super.key});
 
   @override
-  State<ResetPasswordDialog> createState() =>
-      _ResetPasswordDialogState();
+  State<ResetPasswordDialog> createState() => _ResetPasswordDialogState();
 }
 
 class _ResetPasswordDialogState extends State<ResetPasswordDialog> {
@@ -354,9 +357,7 @@ class _ResetPasswordDialogState extends State<ResetPasswordDialog> {
 
     String? error;
 
-    if (oldPassword.isEmpty ||
-        newPassword.isEmpty ||
-        confirmPassword.isEmpty) {
+    if (oldPassword.isEmpty || newPassword.isEmpty || confirmPassword.isEmpty) {
       error = 'Please fill all fields';
     } else if (newPassword.length < 6) {
       error = 'New password must be at least 6 characters';
@@ -367,9 +368,9 @@ class _ResetPasswordDialogState extends State<ResetPasswordDialog> {
     }
 
     if (error != null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(error)),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(error)));
       return;
     }
 
@@ -386,18 +387,16 @@ class _ResetPasswordDialogState extends State<ResetPasswordDialog> {
       Navigator.of(context).pop();
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Password reset successfully'),
-        ),
+        const SnackBar(content: Text('Password reset successfully')),
       );
     } catch (e) {
       if (!mounted) return;
 
       setState(() => _isResetting = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     }
   }
 
@@ -413,9 +412,7 @@ class _ResetPasswordDialogState extends State<ResetPasswordDialog> {
       decoration: InputDecoration(
         labelText: label,
         suffixIcon: IconButton(
-          icon: Icon(
-            obscure ? Icons.visibility_off : Icons.visibility,
-          ),
+          icon: Icon(obscure ? Icons.visibility_off : Icons.visibility),
           onPressed: toggleVisibility,
         ),
       ),
@@ -453,9 +450,7 @@ class _ResetPasswordDialogState extends State<ResetPasswordDialog> {
               controller: _confirmPasswordController,
               obscure: _obscureConfirm,
               toggleVisibility: () {
-                setState(
-                  () => _obscureConfirm = !_obscureConfirm,
-                );
+                setState(() => _obscureConfirm = !_obscureConfirm);
               },
             ),
           ],
@@ -463,9 +458,7 @@ class _ResetPasswordDialogState extends State<ResetPasswordDialog> {
       ),
       actions: [
         TextButton(
-          onPressed: _isResetting
-              ? null
-              : () => Navigator.of(context).pop(),
+          onPressed: _isResetting ? null : () => Navigator.of(context).pop(),
           child: const Text('Cancel'),
         ),
         ElevatedButton(

@@ -2,6 +2,7 @@ import 'package:client/features/visitor/profile/profileScreen.dart';
 import 'package:client/providers/visit_provider.dart';
 import 'package:client/services/QRservice.dart';
 import 'package:client/services/vistitor_auth_service.dart';
+import 'package:client/features/visitor/visitor_ui.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
@@ -33,20 +34,15 @@ class _HomescreenState extends ConsumerState<VisitorHomescreen> {
     });
   }
 
-Future<void> _loadVisitorName() async {
-  final name = await AuthService.storage.read(
-    key: 'visitorName',
-  );
+  Future<void> _loadVisitorName() async {
+    final name = await AuthService.storage.read(key: 'visitorName');
 
-  if (!mounted) return;
+    if (!mounted) return;
 
-  setState(() {
-    visitorName = (name != null && name.trim().isNotEmpty)
-        ? name
-        : 'Visitor';
-  });
-}
-
+    setState(() {
+      visitorName = (name != null && name.trim().isNotEmpty) ? name : 'Visitor';
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -54,67 +50,70 @@ Future<void> _loadVisitorName() async {
     String qrData = '';
     String? error;
     try {
-      qrData = Qrservice.generateQrData(widget.token, entry, nonce, DateTime.now());
+      qrData = Qrservice.generateQrData(
+        widget.token,
+        entry,
+        nonce,
+        DateTime.now(),
+      );
     } catch (e) {
       error = 'Something went wrong. Unable to generate QR code.';
     }
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F8F5),
-      appBar: AppBar(
-        //profile button
-        leading: Center(
-          child: IconButton(
-            onPressed: () async{
-             await Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) =>
-                      VisitorProfileScreen(),
-                ),
-              );
-              await _loadVisitorName();
-            },
-            icon: Icon(Icons.person),
+    return Theme(
+      data: VisitorUi.theme(),
+      child: Scaffold(
+        appBar: AppBar(
+          //profile button
+          leading: Center(
+            child: IconButton(
+              onPressed: () async {
+                await Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => VisitorProfileScreen(),
+                  ),
+                );
+                await _loadVisitorName();
+              },
+              icon: const Icon(Icons.person_outline),
+            ),
           ),
-        ),
-        title: const Text(
-          'IDENTIFY_VISITOR',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        backgroundColor: const Color(0xFFF1F8F5),
-        actions: [
-          IconButton(
-            onPressed: () {},
-            icon: Icon(Icons.notifications_active_outlined),
+          title: const Text(
+            'IDENTIFY_VISITOR',
+            style: TextStyle(fontWeight: FontWeight.w800),
           ),
-        ],
-      ),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              children: [
-                Card(
-                  surfaceTintColor: Colors.white,
-                  color: Colors.white,
-                  shadowColor: Colors.greenAccent,
-                  elevation: 2,
-                  child: Padding(
-                    padding: const EdgeInsets.all(30.0),
+          actions: [
+            IconButton(
+              onPressed: () {},
+              icon: const Icon(Icons.notifications_none_rounded),
+            ),
+          ],
+        ),
+        body: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
+              child: Column(
+                children: [
+                  VisitorUi.roundedCard(
+                    padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
                     child: Column(
                       children: [
                         Text(
                           'Hello $visitorName, 👋',
                           style: const TextStyle(
                             fontSize: 24,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
+                            color: VisitorUi.text,
                           ),
                         ),
 
                         const SizedBox(height: 8),
 
-                        const Text('Show this QR code to the guard'),
+                        const Text(
+                          'Show this QR code to the guard',
+                          style: TextStyle(color: VisitorUi.muted),
+                        ),
 
                         const SizedBox(height: 24),
 
@@ -124,7 +123,7 @@ Future<void> _loadVisitorName() async {
                         else
                           QrImageView(
                             data: qrData,
-                            size: 230,
+                            size: 220,
                             backgroundColor: Colors.white,
                           ),
 
@@ -134,7 +133,7 @@ Future<void> _loadVisitorName() async {
                           entry == 1 ? 'ENTRY QR' : 'EXIT QR',
                           style: TextStyle(
                             fontSize: 18,
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
                             color: entry == 1
                                 ? Colors.green.shade700
                                 : Colors.red,
@@ -158,7 +157,7 @@ Future<void> _loadVisitorName() async {
                                       12,
                                     ),
                                   ),
-                                  backgroundColor: Colors.green.shade700,
+                                  backgroundColor: VisitorUi.green,
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 20,
@@ -208,7 +207,7 @@ Future<void> _loadVisitorName() async {
                                       12,
                                     ),
                                   ),
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: const Color(0xFFE95252),
                                   foregroundColor: Colors.white,
                                   padding: const EdgeInsets.symmetric(
                                     vertical: 20,
@@ -248,29 +247,29 @@ Future<void> _loadVisitorName() async {
                       ],
                     ),
                   ),
-                ),
-                SizedBox(height: 30.h),
-                GestureDetector(
-                  onTap: () async {},
-                  child: Card(
-                    surfaceTintColor: Colors.white,
-                    color: Colors.white,
-                    shadowColor: Colors.greenAccent,
-                    elevation: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.all(5.0),
+                  SizedBox(height: 30.h),
+                  GestureDetector(
+                    onTap: () async {},
+                    child: VisitorUi.roundedCard(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       child: ListTile(
-                        leading: Icon(Icons.alarm),
-                        title: Text(
-                          "View Visit History",
-                          style: TextStyle(fontWeight: FontWeight.bold),
+                        leading: const Icon(
+                          Icons.history_rounded,
+                          color: VisitorUi.green,
                         ),
-                        trailing: Icon(Icons.arrow_forward_ios),
+                        title: const Text(
+                          "View Visit History",
+                          style: TextStyle(fontWeight: FontWeight.w700),
+                        ),
+                        trailing: const Icon(Icons.arrow_forward_ios, size: 18),
                       ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
