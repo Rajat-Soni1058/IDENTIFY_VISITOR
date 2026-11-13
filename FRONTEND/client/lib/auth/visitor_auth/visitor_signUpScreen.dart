@@ -1,5 +1,6 @@
 import 'package:client/auth/visitor_auth/visitor_loginScreen.dart';
 import 'package:client/features/visitor/home/homeScreen.dart';
+import 'package:client/features/visitor/visitor_ui.dart';
 import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 
@@ -18,7 +19,7 @@ class _VisitorSignupScreenState extends State<VisitorSignupScreen> {
   final confirmPasswordController = TextEditingController();
   final nameController = TextEditingController();
   final ageController = TextEditingController();
-  final identityController = TextEditingController();
+  final aadhaarController = TextEditingController();
   final phoneController = TextEditingController();
   final purposeController = TextEditingController();
   final addressController = TextEditingController();
@@ -36,7 +37,7 @@ class _VisitorSignupScreenState extends State<VisitorSignupScreen> {
     confirmPasswordController.dispose();
     nameController.dispose();
     ageController.dispose();
-    identityController.dispose();
+    aadhaarController.dispose();
     phoneController.dispose();
     purposeController.dispose();
     addressController.dispose();
@@ -77,7 +78,7 @@ class _VisitorSignupScreenState extends State<VisitorSignupScreen> {
         name: nameController.text.trim(),
         email: emailController.text.trim(),
         password: passwordController.text,
-        identityNumber: identityController.text.trim(),
+        identityNumber: aadhaarController.text.trim(),
         age: int.parse(ageController.text.trim()),
         gender: gender!,
         address: addressController.text.trim(),
@@ -96,9 +97,7 @@ class _VisitorSignupScreenState extends State<VisitorSignupScreen> {
       Navigator.pushAndRemoveUntil(
         context,
         MaterialPageRoute(
-          builder: (_) => VisitorHomescreen(
-            token: result['token'].toString(),
- ),
+          builder: (_) => VisitorHomescreen(token: result['token'].toString()),
         ),
         (route) => false,
       );
@@ -137,7 +136,6 @@ class _VisitorSignupScreenState extends State<VisitorSignupScreen> {
         labelText: label,
         prefixIcon: Icon(icon),
         suffixIcon: suffixIcon,
-        border: const OutlineInputBorder(),
       ),
     );
   }
@@ -263,9 +261,23 @@ class _VisitorSignupScreenState extends State<VisitorSignupScreen> {
           key: const ValueKey(2),
           children: [
             buildField(
-              controller: identityController,
-              label: 'Identity Number',
+              controller: aadhaarController,
+              label: 'Aadhaar Number',
               icon: Icons.badge_outlined,
+              keyboardType: TextInputType.number,
+              validator: (value) {
+                if (value == null || value.trim().isEmpty) {
+                  return 'Please enter Aadhaar number';
+                }
+
+                final normalized = value.replaceAll(RegExp(r'[\s-]'), '');
+
+                if (!RegExp(r'^\d{12}$').hasMatch(normalized)) {
+                  return 'Aadhaar number must contain exactly 12 digits';
+                }
+
+                return null;
+              },
             ),
             const SizedBox(height: 18),
             buildField(
@@ -297,96 +309,110 @@ class _VisitorSignupScreenState extends State<VisitorSignupScreen> {
   Widget build(BuildContext context) {
     const titles = ['Account Details', 'Personal Details', 'Visitor Details'];
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F8F5),
-      appBar: AppBar(
-        title: const Text('Create Account'),
-        backgroundColor: const Color(0xFFF1F8F5),
-      ),
-      body: SafeArea(
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            padding: const EdgeInsets.all(24),
-            children: [
-              const Text(
-                'Join Identify Visitor',
-                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 8),
-              Text('Step ${currentStep + 1} of 3'),
-              const SizedBox(height: 12),
-              LinearProgressIndicator(
-                value: (currentStep + 1) / 3,
-                minHeight: 6,
-                borderRadius: BorderRadius.circular(10),
-                color: const Color(0xFF078653),
-                backgroundColor: Colors.black12,
-              ),
-              const SizedBox(height: 28),
-              Text(
-                titles[currentStep],
-                style: const TextStyle(
-                  fontSize: 21,
-                  fontWeight: FontWeight.w600,
+    return Theme(
+      data: VisitorUi.theme(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text(
+            'Create Account',
+            style: TextStyle(fontWeight: FontWeight.w700),
+          ),
+        ),
+        body: SafeArea(
+          child: Form(
+            key: _formKey,
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(22, 14, 22, 28),
+              children: [
+                VisitorUi.sectionTitle(
+                  'Join Identify Visitor',
+                  'Register as a permanent visitor',
                 ),
-              ),
-              const SizedBox(height: 20),
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 200),
-                child: buildStepFields(),
-              ),
-              const SizedBox(height: 28),
-              Row(
-                children: [
-                  if (currentStep > 0)
-                    Expanded(
-                      child: OutlinedButton(
-                        onPressed: isLoading
-                            ? null
-                            : () => setState(() => currentStep--),
-                        child: const Text('Back'),
-                      ),
-                    ),
-                  if (currentStep > 0) const SizedBox(width: 12),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: isLoading ? null : nextStep,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF078653),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.all(16),
-                      ),
-                      child: isLoading
-                          ? const SizedBox(
-                              height: 22,
-                              width: 22,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(currentStep == 2 ? 'Sign Up' : 'Continue'),
-                    ),
+                const SizedBox(height: 8),
+                Text(
+                  'Step ${currentStep + 1} of 3',
+                  style: const TextStyle(
+                    color: VisitorUi.green,
+                    fontWeight: FontWeight.w700,
                   ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              if (currentStep == 0)
-                TextButton(
-                  onPressed: isLoading
-                      ? null
-                      : () {
-                          Navigator.pushReplacement(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const VisitorLoginScreen(),
-                            ),
-                          );
-                        },
-                  child: const Text('Already have an account? Login'),
                 ),
-            ],
+                const SizedBox(height: 12),
+                LinearProgressIndicator(
+                  value: (currentStep + 1) / 3,
+                  minHeight: 6,
+                  borderRadius: BorderRadius.circular(10),
+                  color: VisitorUi.green,
+                  backgroundColor: Colors.black12,
+                ),
+                const SizedBox(height: 28),
+                Text(
+                  titles[currentStep],
+                  style: const TextStyle(
+                    fontSize: 21,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: buildStepFields(),
+                ),
+                const SizedBox(height: 28),
+                Row(
+                  children: [
+                    if (currentStep > 0)
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: isLoading
+                              ? null
+                              : () => setState(() => currentStep--),
+                          style: OutlinedButton.styleFrom(
+                            minimumSize: const Size.fromHeight(54),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            side: const BorderSide(color: VisitorUi.green),
+                            foregroundColor: VisitorUi.green,
+                          ),
+                          child: const Text('Back'),
+                        ),
+                      ),
+                    if (currentStep > 0) const SizedBox(width: 12),
+                    Expanded(
+                      child: ElevatedButton(
+                        onPressed: isLoading ? null : nextStep,
+                        style: VisitorUi.primaryButton(),
+                        child: isLoading
+                            ? const SizedBox(
+                                height: 22,
+                                width: 22,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
+                              )
+                            : Text(currentStep == 2 ? 'Sign Up' : 'Continue'),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                if (currentStep == 0)
+                  TextButton(
+                    onPressed: isLoading
+                        ? null
+                        : () {
+                            Navigator.pushReplacement(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const VisitorLoginScreen(),
+                              ),
+                            );
+                          },
+                    child: const Text('Already have an account? Login'),
+                  ),
+              ],
+            ),
           ),
         ),
       ),

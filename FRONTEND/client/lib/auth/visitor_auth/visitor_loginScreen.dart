@@ -1,5 +1,6 @@
 import 'package:client/auth/visitor_auth/visitor_signUpScreen.dart';
 import 'package:client/features/visitor/home/homeScreen.dart';
+import 'package:client/features/visitor/visitor_ui.dart';
 import 'package:client/services/vistitor_auth_service.dart';
 import 'package:flutter/material.dart';
 
@@ -32,17 +33,15 @@ class _VisitorLoginScreenState extends State<VisitorLoginScreen> {
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder: (_) => VisitorHomescreen(
-            token: result['token'],
-          ),
+          builder: (_) => VisitorHomescreen(token: result['token']),
         ),
       );
     } catch (e) {
       if (!mounted) return;
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -57,67 +56,67 @@ class _VisitorLoginScreenState extends State<VisitorLoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFF1F8F5),
-      body: SafeArea(
-        child: Center(
+    return Theme(
+      data: VisitorUi.theme(),
+      child: Scaffold(
+        body: SafeArea(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(
-                  Icons.qr_code_2,
-                  size: 75,
-                  color: Color(0xFF078653),
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Welcome Back!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
+                Center(
+                  child: Container(
+                    padding: const EdgeInsets.all(18),
+                    decoration: BoxDecoration(
+                      color: VisitorUi.green.withValues(alpha: .12),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.qr_code_2_rounded,
+                      size: 56,
+                      color: VisitorUi.green,
+                    ),
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Login to access your visitor QR',
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 32),
-                TextField(
-                  controller: emailController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Email',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.email_outlined),
+                const SizedBox(height: 28),
+                VisitorUi.roundedCard(
+                  padding: const EdgeInsets.fromLTRB(22, 26, 22, 22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      VisitorUi.sectionTitle(
+                        'Welcome back',
+                        'Sign in to access your visitor QR',
+                      ),
+                      const SizedBox(height: 28),
+                      TextField(
+                        controller: emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: const InputDecoration(
+                          labelText: 'Email',
+                          prefixIcon: Icon(Icons.email_outlined),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: passwordController,
+                        obscureText: true,
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                          prefixIcon: Icon(Icons.lock_outline),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      ElevatedButton(
+                        onPressed: isLoading ? null : login,
+                        style: VisitorUi.primaryButton(),
+                        child: Text(isLoading ? 'Logging in...' : 'Login'),
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
-                    labelText: 'Password',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.lock_outline),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: isLoading ? null : login,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF078653),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.all(16),
-                  ),
-                  child: Text(
-                    isLoading ? 'Logging in...' : 'Login',
-                  ),
-                ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 18),
                 TextButton(
                   onPressed: () {
                     Navigator.push(
@@ -129,6 +128,10 @@ class _VisitorLoginScreenState extends State<VisitorLoginScreen> {
                   },
                   child: const Text(
                     "Don't have an account? Sign up",
+                    style: TextStyle(
+                      color: VisitorUi.green,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
               ],
